@@ -1,0 +1,15 @@
+bin/schema_checksum.pl
+Build.PL
+Changes
+lib/DBIx/SchemaChecksum.pm
+MANIFEST
+META.yml
+README
+t/00-load.t
+t/base_checksum.t
+t/dbs/base.db
+t/schemadump.t
+xt/boilerplate.t
+xt/pod-coverage.t
+xt/pod.t
+Makefile.PL
