@@ -7,19 +7,23 @@ use DBIx::SchemaChecksum;
 
 my $sc = DBIx::SchemaChecksum->new_with_options();
 
-say $sc->schemadump  if $sc->verbose;
-say $sc->checksum;
+my $pre_checksum = $sc->checksum;
+say "Base checksum: $pre_checksum" if $sc->verbose;
+
+$sc->build_update_path( );
+$sc->apply_sql_snippets($pre_checksum);
 
 __END__
 
 =head1 NAME
 
-schema_checksum.pl - calculate and print a db checksum
+schema_update.pl - Update a schema based on checksums and sql snippets
+
 
 =head1 SYNOPSIS
 
-    schema_checksum.pl --dsn dbi:Pg:dbname=your_db;host=db.example.org
-  
+    schema_update.pl --dsn dbi:Pg:dbname=your_db;host=db.example.org  --sqlsnippetdir path/to/sql/snippets
+
 =head1 DESCRIPTION
 
 Please see C<perldoc DBIx::SchemaChecksum> for more information.
