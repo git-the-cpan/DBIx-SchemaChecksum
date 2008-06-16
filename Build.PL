@@ -11,13 +11,13 @@ my $builder = Module::Build->new(
     build_requires    => {
         'Test::More'       => 0,
         'Test::NoWarnings' => '0.084',
+        'Test::Deep'       => '0.099',
         'DBD::SQLite'      => '1.14',
     },
     requires => {
         'perl'           => '5.010',
         'DBI'            => '1.601',
         'Digest::SHA1'   => '2.11',
-        'IO::Prompt'     => '0',
         'Moose'          => '0.40',
         'MooseX::Getopt' => '0.12',
         'Path::Class'    => '0.16',

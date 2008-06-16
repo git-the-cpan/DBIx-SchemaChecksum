@@ -2,20 +2,20 @@ package DBIx::SchemaChecksum;
 
 use 5.010;
 use Moose;
-use version; our $VERSION = version->new('0.05');
+use version; our $VERSION = version->new('0.06');
 
 use DBI;
 use Digest::SHA1;
 use Data::Dumper;
 use Path::Class;
 use Carp;
-use IO::Prompt;
 
 with 'MooseX::Getopt';
 
-has 'dsn' => ( isa => 'Str', is => 'ro', required => 1 );
+has 'dsn'      => ( isa => 'Str', is => 'ro' );
 has 'user'     => ( isa => 'Str', is => 'ro' );
 has 'password' => ( isa => 'Str', is => 'ro' );
+has 'dbh'      => ( isa => 'DBI::db', is  => 'rw' );
 
 has 'catalog' => ( is => 'ro', isa => 'Str', default => '%' );
 has 'schemata' =>
@@ -30,7 +30,7 @@ has 'no_prompt' => ( is => 'ro', isa => 'Bool', default => 0 );
 has 'dry_run'   => ( is => 'ro', isa => 'Bool', default => 0 );
 
 # internal
-has '_dbh'         => ( isa => 'DBI::db', is  => 'rw' );
+
 has '_schemadump'  => ( is  => 'rw',      isa => 'Str' );
 has '_update_path' => ( is  => 'rw',      isa => 'HashRef' );
 
@@ -97,10 +97,17 @@ Moose Object Builder which sets up the DB connection.
 
 sub BUILD {
     my $self = shift;
-    my $dbh =
-      DBI->connect( $self->dsn, $self->user, $self->password,
-        { RaiseError => 1 } );
-    $self->_dbh($dbh);
+    
+    confess "Attribute (dsn) or (dbh) is required"
+        unless $self->dsn || $self->dbh;
+    
+    unless (defined $self->dbh()) {
+        my $dbh =
+          DBI->connect( $self->dsn, $self->user, $self->password,
+            { RaiseError => 1 } );
+        $self->dbh($dbh);
+    }
+
 }
 
 =head3 checksum
@@ -135,7 +142,7 @@ sub schemadump {
     my $tabletype = $self->tabletype;
     my $catalog   = $self->catalog;
 
-    my $dbh = $self->_dbh;
+    my $dbh = $self->dbh;
 
     my %relevants = ();
     foreach my $schema ( @{ $self->schemata } ) {
@@ -284,20 +291,28 @@ sub apply_sql_snippets {
     if ( $self->no_prompt ) {
         $yes = 1;
     }
-    elsif (
-        prompt(
-            "Do you want me to apply <" . $file->basename . ">? [y/n] ", '-yn1'
-        )
-      )
-    {
-        $yes = 1;
+    else {
+        my $ask_user=1;
+        while ($ask_user) {
+            print "Do you want me to apply <" . $file->basename . ">? [y/n] ";
+            my $in = <STDIN>;
+            chomp($in);
+            if ($in =~ /^y/i) {
+                $yes = 1;
+                $ask_user=0;
+            }
+            elsif ($in =~ /^n/i) {
+                $yes = 0;
+                $ask_user=0;
+            }
+        }
     }
 
     if ($yes) {
         say("Applying the patch") if $self->verbose;
         my $content = $file->slurp;
 
-        my $dbh = $self->_dbh;
+        my $dbh = $self->dbh;
         $dbh->begin_work;
 
         $content =~ s/^\s*--.+$//gm;
@@ -352,9 +367,8 @@ sub apply_sql_snippets {
     my $update_info = $self->build_update_path( '/path/to/sql/snippets' )
 
 Builds the datastructure needed by L<apply_sql_update>.
-
-C<build_update_path> reads in all files ending in ".sql" in the 
-directory passed in (or defaulting to C<< $self->sqlsnippetdir>>). It 
+C<build_update_path> reads in all files ending in ".sql" in the
+directory passed in (or defaulting to C<< $self->sqlsnippetdir >>). It 
 builds something like a linked list of files, which are chained by 
 their C<preSHA1sum> and C<postSHA1sum>.
 
@@ -417,9 +431,13 @@ sub get_checksums_from_snippet {
 All of this methods can also be set from the commandline. See 
 MooseX::Getopts.
 
+=head3 dbh
+
+The database handle (DBH::db). 
+
 =head3 dsn
 
-The dsn. Required.
+The dsn.
 
 =head3 user
 
@@ -502,8 +520,6 @@ L<http://search.cpan.org/dist/DBIx-SchemaChecksum>
 
 Thanks to Klaus Ita and Armin Schreger for writing the core code. I 
 just glued it together...
-
-=head1 ACKNOWLEDGEMENTS
 
 This module was written for revdev L<http://www.revdev.at>, a nice 
 litte software company run by Koki, Domm 

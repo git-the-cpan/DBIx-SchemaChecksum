@@ -1,6 +1,13 @@
 Revision history for DBIx-SchemaChecksum
 
-0.05    
+0.06   2008-06-16 10:46:19
+    - Test Coverage: 78.8%
+    - removed IO::Prompt
+    - Alternative construction via dbh (either dsn or dbh) (maros)
+    - fixed some problems with tests on various platforms
+
+
+0.05   2008-05-24 10:17:02
     - Test Coverage: 82.4%
     - make t/apply_sql_snippets.t skip instead of fail if we cannot
       copy the testdb
