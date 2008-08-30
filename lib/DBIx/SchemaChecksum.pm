@@ -2,7 +2,7 @@ package DBIx::SchemaChecksum;
 
 use 5.010;
 use Moose;
-use version; our $VERSION = version->new('0.06');
+use version; our $VERSION = version->new('0.08');
 
 use DBI;
 use Digest::SHA1;
@@ -15,7 +15,11 @@ with 'MooseX::Getopt';
 has 'dsn'      => ( isa => 'Str', is => 'ro' );
 has 'user'     => ( isa => 'Str', is => 'ro' );
 has 'password' => ( isa => 'Str', is => 'ro' );
-has 'dbh'      => ( isa => 'DBI::db', is  => 'rw' );
+
+# for strange reasons, MooseX::Getop does not work with DBI::db 
+# constraint
+#has 'dbh'      => ( isa => 'DBI::db', is  => 'rw' );
+has 'dbh'      => (  is  => 'rw' );
 
 has 'catalog' => ( is => 'ro', isa => 'Str', default => '%' );
 has 'schemata' =>
@@ -97,7 +101,7 @@ Moose Object Builder which sets up the DB connection.
 
 sub BUILD {
     my $self = shift;
-    
+   
     confess "Attribute (dsn) or (dbh) is required"
         unless $self->dsn || $self->dbh;
     
@@ -105,6 +109,7 @@ sub BUILD {
         my $dbh =
           DBI->connect( $self->dsn, $self->user, $self->password,
             { RaiseError => 1 } );
+
         $self->dbh($dbh);
     }
 
@@ -177,6 +182,10 @@ sub schemadump {
                     }
                 );
             }
+
+			foreach my $col ( @{ $data{columns} } ) {
+				$col->{TYPE_NAME} =~ s/^(?:.+\.)?(.+)$/$1/g;
+			}
 
             $relevants{$table} = \%data;
         }
