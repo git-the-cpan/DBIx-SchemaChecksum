@@ -1,6 +1,6 @@
 ---
 name: DBIx-SchemaChecksum
-version: 0.08
+version: 0.09
 author:
   - 'Thomas Klausner <domm@cpan.org>'
 abstract: Generate and compare checksums of database schematas
@@ -22,7 +22,7 @@ build_requires:
 provides:
   DBIx::SchemaChecksum:
     file: lib/DBIx/SchemaChecksum.pm
-    version: 0.08
+    version: 0.09
 generated_by: Module::Build version 0.280801
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html
