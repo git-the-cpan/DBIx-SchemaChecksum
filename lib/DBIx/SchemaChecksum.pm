@@ -2,7 +2,7 @@ package DBIx::SchemaChecksum;
 
 use 5.010;
 use Moose;
-use version; our $VERSION = version->new('0.21');
+use version; our $VERSION = version->new('0.24');
 
 use DBI;
 use Digest::SHA1;
@@ -150,9 +150,8 @@ sub schemadump {
 
     my $dbh = $self->dbh;
 
-    my @metadata = qw(COLUMN_NAME COLUMN_SIZE NULLABLE);
+    my @metadata = qw(COLUMN_NAME COLUMN_SIZE NULLABLE TYPE_NAME COLUMN_DEF);
     push( @metadata, 'ORDINAL_POSITION' ) unless $self->ignore_order;
-    push( @metadata, qw(TYPE_NAME COLUMN_DEF) );
 
     my %relevants = ();
     foreach my $schema ( @{ $self->schemata } ) {
@@ -170,11 +169,18 @@ sub schemadump {
 
             # columns
             my $sth_col = $dbh->column_info( $catalog, $schema, $t, '%' );
-            my $column_info = $sth_col->fetchall_arrayref(
-                { map { $_ => 1 } @metadata } );
 
-            $data{columns}
-                = { map { $_->{COLUMN_NAME} => $_ } @$column_info };
+            my $column_info = $sth_col->fetchall_hashref('COLUMN_NAME');
+
+            while ( my ( $column, $data ) = each %$column_info ) {
+                $data{columns}{$column}
+                    = { map { $_ => $data->{$_} } @metadata };
+                # add postgres enums
+                if ( $data->{pg_enum_values} ) {
+                    $data{columns}{$column}{pg_enum_values}
+                        = $data->{pg_enum_values};
+                }
+            }
 
             # foreign keys
             my $sth_fk
@@ -186,7 +192,21 @@ sub schemadump {
                     }
                 );
             }
-           
+
+            # postgres unique constraints
+            # very crude hack to see if we're running postgres
+            if ( $INC{'DBD/Pg.pm'} ) {
+                my @unique;
+                my $sth=$dbh->prepare( "select indexdef from pg_indexes where schemaname=? and tablename=?");
+                $sth->execute($schema, $t);
+                while (my ($index) =$sth->fetchrow_array) {
+                    $index=~s/$schema\.//g;
+                    push(@unique,$index);
+                }
+                $data{unique_keys} = \@unique if @unique;
+            }
+
+            # postgres cleanup
             foreach my $col ( values %{ $data{columns} } ) {
                 #  strip schema dependent type definition
                 $col->{TYPE_NAME} =~ s/^(?:.+\.)?(.+)$/$1/g;
@@ -296,21 +316,22 @@ sub apply_sql_snippets {
     my $self          = shift;
     my $this_checksum = shift;
     croak "No current checksum" unless $this_checksum;
-    
+
     my $update_path = $self->_update_path;
 
     my $update = $update_path->{$this_checksum}
         if ( exists $update_path->{$this_checksum} );
 
     unless ($update) {
-        croak "No update found that's based on $this_checksum.\n";
+        print "No update found that's based on $this_checksum.\n";
+        exit;
     }
-    
-    if ($update->[0] eq 'SAME_CHECKSUM') {
+
+    if ( $update->[0] eq 'SAME_CHECKSUM' ) {
         return unless $update->[1];
-        my ($file, $expected_post_checksum)=splice(@$update,1,2);
-        
-        $self->apply_file($file, $expected_post_checksum);
+        my ( $file, $expected_post_checksum ) = splice( @$update, 1, 2 );
+
+        $self->apply_file( $file, $expected_post_checksum );
     }
     else {
         $self->apply_file(@$update);
@@ -318,7 +339,7 @@ sub apply_sql_snippets {
 }
 
 sub apply_file {
-    my ($self, $file, $expected_post_checksum ) = @_;
+    my ( $self, $file, $expected_post_checksum ) = @_;
 
     my $yes = 0;
     if ( $self->no_prompt ) {
@@ -363,7 +384,8 @@ sub apply_file {
                 if ($@) {
                     $dbh->rollback;
                     say "SQL error: $@";
-                    croak "ABORTING!\n";
+                    say "ABORTING!";
+                    exit;
                 }
             }
         }
@@ -387,11 +409,13 @@ sub apply_file {
             say "  expected $expected_post_checksum";
             say "  got      $post_checksum";
             $dbh->rollback;
-            croak "ABORTING!\n";
+            say "ABORTING!";
+            exit;
         }
     }
     else {
-        croak "I am not applying this file. So I stop.\n";
+        say "I am not applying this file. So I stop.";
+        exit;
     }
 }
 
@@ -416,26 +440,39 @@ sub build_update_path {
     say "Checking directory $dir for checksum_files" if $self->verbose;
 
     my %update_info;
-    my @files = File::Find::Rule->file->name('*.sql')->in( $dir );
+    my @files = File::Find::Rule->file->name('*.sql')->in($dir);
 
-    foreach my $file (sort @files) {
+    foreach my $file ( sort @files ) {
         my ( $pre, $post ) = $self->get_checksums_from_snippet($file);
-        
-        if ($pre eq $post) {
-            if ($update_info{$pre}) {
-                unshift(@{$update_info{$pre}},'SAME_CHECKSUM');
+
+        if ( !$pre && !$post ) {
+            say "skipping $file (has no checksums)" if $self->verbose;
+            next;
+        }
+
+        if ( $pre eq $post ) {
+            if ( $update_info{$pre} ) {
+                my @new = ('SAME_CHECKSUM');
+                foreach my $item ( @{ $update_info{$pre} } ) {
+                    push( @new, $item ) unless $item eq 'SAME_CHECKSUM';
+                }
+                $update_info{$pre} = \@new;
             }
             else {
-                $update_info{$pre} = [ 'SAME_CHECKSUM' ];
+                $update_info{$pre} = ['SAME_CHECKSUM'];
             }
         }
-    
-        if ($update_info{$pre} && $update_info{$pre}->[0]  eq 'SAME_CHECKSUM') {
-            if ($post eq $pre) {
-                splice(@{$update_info{$pre}},1,0,Path::Class::File->new($file), $post);
+
+        if (   $update_info{$pre}
+            && $update_info{$pre}->[0] eq 'SAME_CHECKSUM' )
+        {
+            if ( $post eq $pre ) {
+                splice( @{ $update_info{$pre} },
+                    1, 0, Path::Class::File->new($file), $post );
             }
             else {
-                push(@{$update_info{$pre}},[ Path::Class::File->new($file), $post ]);
+                push( @{ $update_info{$pre} },
+                    Path::Class::File->new($file), $post );
             }
         }
         else {
