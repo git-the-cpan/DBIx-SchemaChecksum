@@ -1,31 +1,45 @@
 ---
-name: DBIx-SchemaChecksum
-version: 0.25
+abstract: 'Generate and compare checksums of database schematas'
 author:
   - 'Thomas Klausner <domm@cpan.org>'
-abstract: Generate and compare checksums of database schematas
-license: perl
-resources:
-  license: http://dev.perl.org/licenses/
-requires:
-  DBI: 1.601
-  Digest::SHA1: 2.11
-  File::Find::Rule: 0.30
-  IO::Capture: 0.05
-  Moose: 0.40
-  MooseX::Getopt: 0.12
-  Path::Class: 0.16
-  perl: 5.010
+  - 'Maroš Kollár <maros@cpan.org>'
+  - 'Klaus Ita <koki@worstofall.com>'
 build_requires:
-  DBD::SQLite: 1.14
-  Test::Deep: 0.099
+  File::Copy: 0
+  File::Spec: 0
+  File::Temp: 0
+  Module::Build: 0.3601
+  Module::Pluggable: 0
   Test::More: 0
-  Test::NoWarnings: 0.084
-provides:
-  DBIx::SchemaChecksum:
-    file: lib/DBIx/SchemaChecksum.pm
-    version: 0.25
-generated_by: Module::Build version 0.280801
+  Test::Most: 0
+  Test::Trap: 0
+configure_requires:
+  Module::Build: 0.3601
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 4.300025, CPAN::Meta::Converter version 2.120921'
+license: perl
 meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: DBIx-SchemaChecksum
+requires:
+  Carp: 0
+  DBI: 0
+  Data::Dumper: 0
+  Digest::SHA1: 0
+  File::Find::Rule: 0
+  IO::Prompt::Tiny: 0
+  Moose: 0
+  Moose::Role: 0
+  MooseX::App: 0
+  MooseX::App::Command: 0
+  Path::Class: 0
+  Try::Tiny: 0
+  namespace::autoclean: 0
+  perl: 5.010
+  strict: 0
+  utf8: 0
+  warnings: 0
+resources:
+  repository: git://devbox.vpn.validad.net/DBIx-SchemaChecksum.git
+version: 1.001
