@@ -146,7 +146,7 @@ DBIx::SchemaChecksum::Driver::Pg - Pg driver for DBIx::SchemaChecksum
 
 =head1 VERSION
 
-version 1.001
+version 1.002
 
 =head1 AUTHORS
 

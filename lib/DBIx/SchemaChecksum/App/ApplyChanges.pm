@@ -135,9 +135,11 @@ DBIx::SchemaChecksum::App::ApplyChanges - DBIx::SchemaChecksum command apply_cha
 
 =head1 VERSION
 
-version 1.001
+version 1.002
 
-=head3 apply_sql_snippets
+=head1 METHODS
+
+=head2 apply_sql_snippets
 
     $self->apply_sql_snippets( $starting_checksum );
 

@@ -4,7 +4,7 @@ use 5.010;
 use Moose;
 
 # ABSTRACT: Generate and compare checksums of database schematas
-our $VERSION = '1.001';
+our $VERSION = '1.002';
 
 use DBI;
 use Digest::SHA1;
@@ -79,10 +79,12 @@ sub BUILD {
 }
 
 
+
 sub checksum {
     my $self = shift;
     return Digest::SHA1::sha1_hex($self->_schemadump);
 }
+
 
 
 sub _build_schemadump {
@@ -117,6 +119,7 @@ sub _build_schemadump {
     return $dump;
 }
 
+
 sub _build_schemadump_schema {
     my ($self,$schema) = @_;
 
@@ -125,6 +128,7 @@ sub _build_schemadump_schema {
 
     return \%relevants;
 }
+
 
 sub _build_schemadump_tables {
     my ($self,$schema) = @_;
@@ -146,6 +150,7 @@ sub _build_schemadump_tables {
 
     return \%relevants;
 }
+
 
 sub _build_schemadump_table {
     my ($self,$schema,$table) = @_;
@@ -179,6 +184,7 @@ sub _build_schemadump_table {
 
     return \%relevants;
 }
+
 
 sub _build_schemadump_column {
     my ($self,$schema,$table,$column,$data) = @_;
@@ -275,6 +281,7 @@ sub get_checksums_from_snippet {
     return map { $checksums{$_} || '' } qw(pre post);
 }
 
+__PACKAGE__->meta->make_immutable();
 
 q{ Favourite record of the moment: The Dynamics - Version Excursions }
 
@@ -288,69 +295,127 @@ DBIx::SchemaChecksum - Generate and compare checksums of database schematas
 
 =head1 VERSION
 
-version 1.001
+version 1.002
 
 =head1 SYNOPSIS
 
     my $sc = DBIx::SchemaChecksum->new( dbh => $dbh );
     print $sc->checksum;
 
+    # Or use the included script, scs.pl
+
 =head1 DESCRIPTION
 
-When you're dealing with several instances of the same database (eg.  
-developer, testing, stage, production), it is crucial to make sure 
-that all databases use the same schema. This can be quite an 
-hair-pulling experience, and this module should help you keep your 
-hair (if you're already bald, it won't make your hair grow back, 
+When you're dealing with several instances of the same database (eg.
+developer, testing, stage, production), it is crucial to make sure
+that all databases use the same schema. This can be quite an
+hair-pulling experience, and this module should help you keep your
+hair (if you're already bald, it won't make your hair grow back,
 sorry...)
 
-DBIx::SchemaChecksum gets schema information (tables, columns, primary keys, 
-foreign keys and some more depending on your DBD) and generates a SHA1 digest. 
-This digest can then be used to easily verify schema consistency across 
+DBIx::SchemaChecksum gets schema information (tables, columns, primary keys,
+foreign keys and some more depending on your DBD) and generates a SHA1 digest.
+This digest can then be used to easily verify schema consistency across
 different databases.
 
-B<Caveat:> The same schema might produce different checksums on 
+B<Caveat:> The same schema might produce different checksums on
 different database versions.
 
-DBIx::SchemaChecksum is tested with PostgreSQL 8.3 to 9.1 and SQLite (but see 
-below). I assume that thanks to the abstraction provided by the C<DBI> 
-it works with most databases. If you try DBIx::SchemaChecksum with 
+DBIx::SchemaChecksum is tested with PostgreSQL 8.3 to 9.1 and SQLite (but see
+below). I assume that thanks to the abstraction provided by the C<DBI>
+it works with most databases. If you try DBIx::SchemaChecksum with
 different database systems, I'd love to hear some feedback...
 
 =head2 Scripts
 
-Please take a look at the L<bin/scs> script included in this distribution.
+Please take a look at the L<bin/scs.pl> script included in this distribution.
 
-=head1 NAME
+=head2 Talks
 
-DBIx::SchemaChecksum - Generate and compare checksums of database schematas
+You can find more information on the rational, usage & implementation in the slides for my talk at the Austrian Perl Workshop 2012, available here: L<http://domm.plix.at/talks/dbix_schemachecksum.html>
 
-=head1 METHODS 
+=head1 METHODS
 
-=head2 Public Methods
+=head2 checksum
 
-=head3 schemadump
+    my $sha1_hex = $self->checksum();
+
+Gets the schemadump and runs it through Digest::SHA1, returning the current checksum.
+
+=head2 schemadump
 
     my $schemadump = $self->schemadump;
 
-Returns a string representation of the whole schema (as a Data::Dumper 
-Dump).
+Returns a string representation of the whole schema (as a Data::Dumper Dump).
 
-=head3 build_update_path
+Lazy Moose attribute.
 
-    my $update_info = $self->build_update_path( '/path/to/sql/snippets' )
+=head2 _build_schemadump
 
-Builds the datastructure needed by L<apply_sql_update>.
-C<build_update_path> reads in all files ending in ".sql" in the
-directory passed in (or defaulting to C<< $self->sqlsnippetdir >>). It 
-builds something like a linked list of files, which are chained by 
-their C<preSHA1sum> and C<postSHA1sum>.
+Internal method to build L<schemadump>. Keep out!
 
-=head3 get_checksums_from_snippet
+=head2 _build_schemadump_schema
 
-    my ($pre, $post) = $self->get_checksums_from_snippet( $file );
+    my $hashref = $self->_build_schemadump_schema( $schema );
 
-Returns a list of the preSHA1sum and postSHA1sum for the given file.
+This is the main entry point for checksum calculations per schema.
+Method-modifiy it if you need to alter the complete schema data
+structure before/after checksumming.
+
+Returns a HashRef like:
+
+    {
+        tables => $hash_ref
+    }
+
+=head2 _build_schemadump_tables
+
+    my $hashref = $self->_build_schemadump_tables( $schema );
+
+Iterate through all tables in a schema, calling
+L<_build_schemadump_table> for each table and collecting the results
+in a HashRef
+
+=head2 _build_schemadump_table
+
+    my $hashref = $self->_build_schemadump_table( $schema, $table );
+
+Get metadata on a table (columns, primary keys & foreign keys) via DBI
+introspection.
+
+This is a good place to method-modify if you need some special processing for your database
+
+Returns a hashref like
+
+    {
+        columns      => $data,
+        primary_keys => $data,
+        foreign_keys => $data,
+    }
+
+=head2 _build_schemadump_column
+
+    my $hashref = $self->_build_schemadump_column( $schema, $table, $column, $raw_dbi_data );
+
+Does some cleanup on the data returned by DBI.
+
+=head2 update_path
+
+    my $update_info = $self->update_path
+
+Lazy Moose attribute that returns the datastructure needed by L<apply_sql_update>.
+
+=head2 _build_update_path
+
+C<_build_update_path> reads in all files ending in ".sql" in C<< $self->sqlsnippetdir >>.
+It builds something like a linked list of files, which are chained by their
+C<preSHA1sum> and C<postSHA1sum>.
+
+=head2 get_checksums_from_snippet
+
+    my ($pre, $post) = $self->get_checksums_from_snippet( $filename );
+
+Returns a list of the preSHA1sum and postSHA1sum for the given file in C< sqlnippetdir>.
 
 The file has to contain this info in SQL comments, eg:
 
@@ -359,29 +424,47 @@ The file has to contain this info in SQL comments, eg:
 
   alter table foo add column bar;
 
-=head3 dbh
+=head2 dbh
 
-Reas/set database handle (DBH::db). 
+Database handle (DBH::db). Moose attribute
 
-=head3 catalog
+=head2 catalog
 
 The database catalog searched for data. Not implemented by all DBs. See C<DBI::table_info>
 
 Default C<%>.
 
-=head3 schemata
+Moose attribute
+
+=head2 schemata
 
 An Arrayref containg names of schematas to include in checksum calculation. See C<DBI::table_info>
 
 Default C<%>.
 
-=head3 sqlsnippetdir
+Moose attribute
+
+=head2 sqlsnippetdir
 
 Path to the directory where the sql change files are stored.
 
-=head3 verbose
+Moose attribute
+
+=head2 verbose
 
 Be verbose or not. Default: 0
+
+=head2 driveropts
+
+Additional options for the specific database driver.
+
+=head1 NAME
+
+DBIx::SchemaChecksum - Generate and compare checksums of database schematas
+
+=head1 SEE ALSO
+
+C< bin/scs.pl> for a commandline frontend powered by MooseX::App
 
 =head1 ACKNOWLEDGEMENTS
 

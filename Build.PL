@@ -26,7 +26,7 @@ my %module_build_args = (
     "Klaus Ita <koki\@worstofall.com>"
   ],
   "dist_name" => "DBIx-SchemaChecksum",
-  "dist_version" => "1.001",
+  "dist_version" => "1.002",
   "license" => "perl",
   "module_name" => "DBIx::SchemaChecksum",
   "recommends" => {},
@@ -40,7 +40,7 @@ my %module_build_args = (
     "IO::Prompt::Tiny" => 0,
     "Moose" => 0,
     "Moose::Role" => 0,
-    "MooseX::App" => 0,
+    "MooseX::App" => "1.08",
     "MooseX::App::Command" => 0,
     "Path::Class" => 0,
     "Try::Tiny" => 0,

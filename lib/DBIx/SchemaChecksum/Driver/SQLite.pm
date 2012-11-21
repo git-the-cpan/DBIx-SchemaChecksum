@@ -30,7 +30,7 @@ DBIx::SchemaChecksum::Driver::SQLite - SQLite driver for DBIx::SchemaChecksum
 
 =head1 VERSION
 
-version 1.001
+version 1.002
 
 =head1 AUTHORS
 

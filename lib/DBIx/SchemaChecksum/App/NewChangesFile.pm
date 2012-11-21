@@ -21,7 +21,7 @@ DBIx::SchemaChecksum::App::NewChangesFile - DBIx::SchemaChecksum command new_cha
 
 =head1 VERSION
 
-version 1.001
+version 1.002
 
 =head1 AUTHORS
 
