@@ -25,7 +25,7 @@ sub show_update_path {
 
     unless ($update) {
         say "No update found that's based on $this_checksum.";
-        exit;
+        return;
     }
 
     if ( $update->[0] eq 'SAME_CHECKSUM' ) {
@@ -57,7 +57,7 @@ DBIx::SchemaChecksum::App::ShowUpdatePath - DBIx::SchemaChecksum command show_up
 
 =head1 VERSION
 
-version 1.002
+version 1.003
 
 =head1 AUTHORS
 
