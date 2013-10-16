@@ -33,7 +33,7 @@ DBIx::SchemaChecksum::App::Checksum - DBIx::SchemaChecksum command checksum
 
 =head1 VERSION
 
-version 1.004
+version 1.005
 
 =head1 AUTHORS
 

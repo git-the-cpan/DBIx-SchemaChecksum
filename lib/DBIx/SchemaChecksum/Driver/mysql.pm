@@ -28,7 +28,7 @@ DBIx::SchemaChecksum::Driver::mysql - MySQL driver for DBIx::SchemaChecksum
 
 =head1 VERSION
 
-version 1.004
+version 1.005
 
 =head1 AUTHORS
 

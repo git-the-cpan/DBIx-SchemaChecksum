@@ -57,7 +57,7 @@ DBIx::SchemaChecksum::App::ShowUpdatePath - DBIx::SchemaChecksum command show_up
 
 =head1 VERSION
 
-version 1.004
+version 1.005
 
 =head1 AUTHORS
 
