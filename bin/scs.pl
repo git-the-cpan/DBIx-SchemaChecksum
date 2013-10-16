@@ -19,7 +19,7 @@ scs.pl - run DBIx::SchemaChecksum
 
 =head1 VERSION
 
-version 1.003
+version 1.004
 
 =head1 USAGE
 

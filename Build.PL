@@ -19,7 +19,7 @@ my %module_build_args = (
     "Klaus Ita <koki\@worstofall.com>"
   ],
   "dist_name" => "DBIx-SchemaChecksum",
-  "dist_version" => "1.003",
+  "dist_version" => "1.004",
   "license" => "perl",
   "module_name" => "DBIx::SchemaChecksum",
   "recommends" => {},

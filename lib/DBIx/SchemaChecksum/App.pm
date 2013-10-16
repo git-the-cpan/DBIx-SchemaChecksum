@@ -48,7 +48,7 @@ DBIx::SchemaChecksum::App - App base class
 
 =head1 VERSION
 
-version 1.003
+version 1.004
 
 =head1 AUTHORS
 

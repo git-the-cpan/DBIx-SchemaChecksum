@@ -155,7 +155,7 @@ DBIx::SchemaChecksum::App::ApplyChanges - DBIx::SchemaChecksum command apply_cha
 
 =head1 VERSION
 
-version 1.003
+version 1.004
 
 =head1 METHODS
 
