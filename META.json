@@ -2,11 +2,11 @@
    "abstract" : "Generate and compare checksums of database schematas",
    "author" : [
       "Thomas Klausner <domm@cpan.org>",
-      "Maro\u00c5\u00a1 Koll\u00c3\u00a1r <maros@cpan.org>",
+      "Maroš Kollár <maros@cpan.org>",
       "Klaus Ita <koki@worstofall.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300039, CPAN::Meta::Converter version 2.132661",
+   "generated_by" : "Dist::Zilla version 5.029, CPAN::Meta::Converter version 2.142690",
    "license" : [
       "perl_5"
    ],
@@ -18,12 +18,12 @@
    "prereqs" : {
       "build" : {
          "requires" : {
-            "Module::Build" : "0.3601"
+            "Module::Build" : "0.28"
          }
       },
       "configure" : {
          "requires" : {
-            "Module::Build" : "0.3601"
+            "Module::Build" : "0.28"
          }
       },
       "runtime" : {
@@ -65,9 +65,9 @@
    "resources" : {
       "repository" : {
          "type" : "git",
-         "url" : "git://devbox.vpn.validad.net/DBIx-SchemaChecksum.git"
+         "url" : "git://code.validad.net/validad/dbix-schemachecksum"
       }
    },
-   "version" : "1.005"
+   "version" : "1.006"
 }
 

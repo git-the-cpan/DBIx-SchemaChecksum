@@ -13,13 +13,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 scs.pl - run DBIx::SchemaChecksum
 
 =head1 VERSION
 
-version 1.005
+version 1.006
 
 =head1 USAGE
 

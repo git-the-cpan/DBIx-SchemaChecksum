@@ -92,14 +92,17 @@ sub apply_file {
 
             next unless $command;
             say "Executing SQL statement: $command" if $self->verbose;
-            try {
-                $dbh->do($command)
-            } catch {
+            my $success = try {
+                $dbh->do($command);
+                return 1;
+            }
+            catch {
                 $dbh->rollback;
-                say "SQL error: $_";
+                say "SQL error: $_" unless $dbh->{PrintError};
                 say "ABORTING!";
-                return;
+                return undef;
             };
+            return unless $success; # abort all further changes
             say "Successful!" if $self->verbose;
         }
 
@@ -149,13 +152,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 DBIx::SchemaChecksum::App::ApplyChanges - DBIx::SchemaChecksum command apply_changes
 
 =head1 VERSION
 
-version 1.005
+version 1.006
 
 =head1 METHODS
 

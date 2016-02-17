@@ -15,13 +15,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 DBIx::SchemaChecksum::App::NewChangesFile - DBIx::SchemaChecksum command new_changes_file
 
 =head1 VERSION
 
-version 1.005
+version 1.006
 
 =head1 AUTHORS
 

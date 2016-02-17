@@ -4,7 +4,7 @@ use 5.010;
 use Moose;
 
 # ABSTRACT: Generate and compare checksums of database schematas
-our $VERSION = '1.005';
+our $VERSION = '1.006';
 
 use DBI;
 use Digest::SHA1;
@@ -172,7 +172,7 @@ sub _build_schemadump_table {
             if $column_data;
     }
 
-    # Foreign keys
+    # Foreign keys (only use a few selected meta-fields)
     my $sth_fk = $dbh->foreign_key_info( undef, undef, undef, $self->catalog, $schema, $table );
     if ($sth_fk) {
         my $fk={};
@@ -288,13 +288,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 DBIx::SchemaChecksum - Generate and compare checksums of database schematas
 
 =head1 VERSION
 
-version 1.005
+version 1.006
 
 =head1 SYNOPSIS
 

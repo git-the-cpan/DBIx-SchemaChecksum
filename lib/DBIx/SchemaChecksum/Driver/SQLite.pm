@@ -24,13 +24,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 DBIx::SchemaChecksum::Driver::SQLite - SQLite driver for DBIx::SchemaChecksum
 
 =head1 VERSION
 
-version 1.005
+version 1.006
 
 =head1 AUTHORS
 

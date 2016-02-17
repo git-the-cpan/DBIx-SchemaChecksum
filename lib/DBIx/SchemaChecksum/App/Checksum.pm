@@ -27,13 +27,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 DBIx::SchemaChecksum::App::Checksum - DBIx::SchemaChecksum command checksum
 
 =head1 VERSION
 
-version 1.005
+version 1.006
 
 =head1 AUTHORS
 

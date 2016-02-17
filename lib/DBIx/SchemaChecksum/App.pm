@@ -42,13 +42,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 DBIx::SchemaChecksum::App - App base class
 
 =head1 VERSION
 
-version 1.005
+version 1.006
 
 =head1 AUTHORS
 
